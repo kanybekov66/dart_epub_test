@@ -24,6 +24,8 @@ dependencies:
   flutter:
     sdk: flutter
   epub: ^2.0.0
+  lipsum: ^1.0.1
+  span_builder: ^0.1.0
   webview_flutter: ^1.0.7
 
 

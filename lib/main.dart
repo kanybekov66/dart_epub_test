@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:epub/epub.dart';
 import 'package:flutter/services.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:lipsum/lipsum.dart' as lipsum;
+import 'package:span_builder/span_builder.dart';
 
 void main() {
   runApp(MyApp());
@@ -55,69 +57,129 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   String _counter = 'name';
 
-  void _incrementCounter() async {
+  EpubBook _book;
+  String _bookName;
+  String _bookAuthor;
+  List<String> _bookChapters;
+  List<String> _bookContent;
+
+  void _loadBook() async {
     String fileName = 'assets/Dialoghi-Platon.epub';
     ByteData bytes = await rootBundle.load(fileName);
     print('bytes: $bytes');
     final buffer = bytes.buffer;
-    List<int> listInt = buffer.asUint8List(bytes.offsetInBytes, bytes.lengthInBytes);
+    List<int> listInt =
+        buffer.asUint8List(bytes.offsetInBytes, bytes.lengthInBytes);
     EpubBook epubBook = await EpubReader.readBook(listInt);
     print(epubBook.Chapters);
-    print(epubBook.Content);
+    print(epubBook.Content.AllFiles);
     setState(() {
       _counter = epubBook.Title;
     });
   }
 
+  // <p class="head"> dawdasdawdasdawdadadawdawdawd awd awd awda <em>asdklhjaklsjdha</em> </p>
+
+  _showPopupMenu() {
+    showMenu<String>(
+      context: context,
+      position: RelativeRect.fromLTRB(1000.0, 1000.0, 1000.0, 1000.0),
+      //position where you want to show the menu on screen
+      items: [
+        PopupMenuItem<String>(child: const Text('Русский'), value: '1'),
+        PopupMenuItem<String>(child: const Text('Кыргызча'), value: '2'),
+        PopupMenuItem<String>(child: const Text('Türkçe'), value: '3'),
+        PopupMenuItem<String>(child: const Text('Қазақша'), value: '4'),
+      ],
+      elevation: 8.0,
+    ).then<void>((String itemSelected) {
+      if (itemSelected == null) return;
+    });
+  }
+
+  // textSize = default * (.css/.p/{font-size} )
+
+  ///генератор текста
+  List<String> _text =
+      lipsum.createText(numParagraphs: 10, numSentences: 10).split(" ");
+
+  // List<String> _text = "Моя фывыф фыв ф фыв фывф в фы фы моя фыв ффыв фыфы  фыв".split(" ");
+
+  ///лист из спанов, на случай если виджет не принимает просто текст
+  ///каждое слово лежит в отдельном TextSpan(text:'текст')
+  List<TextSpan> textSpanList = new List<TextSpan>();
+  List<String> list;
+
+  List<TextSpan> parseText() {
+    print('TEXT SPLIT: $list');
+    ///перекачиваем слова из текста в лист из TextSpan'ов
+    _text.forEach((e) => {textSpanList.add(new TextSpan(text: e))});
+    // print('TEXT SPANS: $textSpanList');
+  }
+
+  ///константный размер текста
+  double _textSize = 14;
+
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: Text("Book"),
       ),
       body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Text(
-              'Name of the book:',
+          child: Column(
+        children: [
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(15.0),
+              ///Spanbuilder который из стринга делает спаны
+              child: SpanBuilderWidget(
+                /// justify - разных размеров пробелы между словами
+                /// для того, чтобы текста был впритык слева и справа
+                textAlign: TextAlign.justify,
+                /// максимальное кол-во строк
+                // maxLines: 20,
+                /// соотношение размера текста
+                textScaleFactor: 1,
+                /// сам билдер, который моздает СПАНы из _text.toString()
+                /// _text.toString делаем потому, что _text это массив из строк
+                /// а билдер принимает в себя одну строку
+                text: SpanBuilder((_text.toString()))
+                /// ..apply(TextSpan(...)... это изменение конкретного слова под
+                /// заданную стилистику)
+                  ..apply(
+                      TextSpan(
+                          text: _text[0],
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                            fontSize: _textSize + 10,
+                          )),
+                      onTap: () => {
+                        print("weeeee text[0]")
+                      })
+                  ..apply(TextSpan(
+                      text: _text[5],
+                      style: TextStyle(
+                          fontStyle: FontStyle.italic, color: Colors.orange))
+                  ),
+                defaultStyle:
+                    TextStyle(
+                      color: Colors.black,
+                        fontSize: _textSize
+                    ),
+              ),
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
+          ),
+          Center(
+            child: SelectableText(
+              "Somae asd a asda w  asdjkhasgdkj k ka ksjhd awa sd a",
+              showCursor: true,
+              onTap: () => {parseText(), print(textSpanList)},
             ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+          )
+        ],
+      )),
     );
   }
 }
