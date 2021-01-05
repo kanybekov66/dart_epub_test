@@ -112,8 +112,9 @@ class _MyHomePageState extends State<MyHomePage> {
 
   List<TextSpan> parseText() {
     print('TEXT SPLIT: $list');
+
     ///перекачиваем слова из текста в лист из TextSpan'ов
-    _text.forEach((e) => {textSpanList.add(new TextSpan(text: e))});
+    _text.forEach((e) => {textSpanList.add(new TextSpan(text: e + ' '))});
     // print('TEXT SPANS: $textSpanList');
   }
 
@@ -122,6 +123,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    parseText();
     return Scaffold(
       appBar: AppBar(
         title: Text("Book"),
@@ -131,45 +133,54 @@ class _MyHomePageState extends State<MyHomePage> {
         children: [
           Center(
             child: Padding(
-              padding: const EdgeInsets.all(15.0),
-              ///Spanbuilder который из стринга делает спаны
-              child: SpanBuilderWidget(
-                /// justify - разных размеров пробелы между словами
-                /// для того, чтобы текста был впритык слева и справа
-                textAlign: TextAlign.justify,
-                /// максимальное кол-во строк
-                // maxLines: 20,
-                /// соотношение размера текста
-                textScaleFactor: 1,
-                /// сам билдер, который моздает СПАНы из _text.toString()
-                /// _text.toString делаем потому, что _text это массив из строк
-                /// а билдер принимает в себя одну строку
-                text: SpanBuilder((_text.toString()))
-                /// ..apply(TextSpan(...)... это изменение конкретного слова под
-                /// заданную стилистику)
-                  ..apply(
-                      TextSpan(
-                          text: _text[0],
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                            fontSize: _textSize + 10,
-                          )),
-                      onTap: () => {
-                        print("weeeee text[0]")
-                      })
-                  ..apply(TextSpan(
-                      text: _text[5],
-                      style: TextStyle(
-                          fontStyle: FontStyle.italic, color: Colors.orange))
+                padding: const EdgeInsets.all(15.0),
+
+                ///Spanbuilder который из стринга делает спаны
+                child: SelectableText.rich(
+                  TextSpan(
+                    text: 'Hello', // default text style
+                    children: textSpanList,
                   ),
-                defaultStyle:
-                    TextStyle(
-                      color: Colors.black,
-                        fontSize: _textSize
-                    ),
-              ),
-            ),
+                  onTap: () {},
+                  toolbarOptions: ToolbarOptions(cut: true),
+                )
+                // child: SpanBuilderWidget(
+                //   /// justify - разных размеров пробелы между словами
+                //   /// для того, чтобы текста был впритык слева и справа
+                //   textAlign: TextAlign.justify,
+                //   /// максимальное кол-во строк
+                //   // maxLines: 20,
+                //   /// соотношение размера текста
+                //   textScaleFactor: 1,
+                //   /// сам билдер, который моздает СПАНы из _text.toString()
+                //   /// _text.toString делаем потому, что _text это массив из строк
+                //   /// а билдер принимает в себя одну строку
+                //   text: SpanBuilder((_text.toString()))
+                //   /// ..apply(TextSpan(...)... это изменение конкретного слова под
+                //   /// заданную стилистику)
+                //     ..apply(
+                //         TextSpan(
+                //             text: _text[0],
+                //             style: TextStyle(
+                //               fontWeight: FontWeight.bold,
+                //               color: Colors.black,
+                //               fontSize: _textSize + 10,
+                //             )),
+                //         onTap: () => {
+                //           print("weeeee text[0]")
+                //         })
+                //     ..apply(TextSpan(
+                //         text: _text[5],
+                //         style: TextStyle(
+                //             fontStyle: FontStyle.italic, color: Colors.orange))
+                //     ),
+                //   defaultStyle:
+                //       TextStyle(
+                //         color: Colors.black,
+                //           fontSize: _textSize
+                //       ),
+                // ),
+                ),
           ),
           Center(
             child: SelectableText(
